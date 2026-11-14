@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111418">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maintenance">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Maintenance</title>
+<style>
+:root{
+  --bg:#111418; --card:#1a1f25; --card2:#222931; --line:#2c343d;
+  --text:#eef1f4; --mute:#9aa4af; --accent:#ff8a1f; --accent-ink:#1a0e00;
+  --ok:#3fb950; --soon:#e3b341; --over:#f85149; --unset:#6b7682;
+  --tabh:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{min-height:100vh;overscroll-behavior-y:none}
+#app{max-width:640px;margin:0 auto;
+  padding:calc(env(safe-area-inset-top) + 14px) 16px calc(var(--tabh) + env(safe-area-inset-bottom) + 28px)}
+h1{font-size:28px;line-height:1.1;margin:6px 0 2px;letter-spacing:-.3px}
+h2{font-size:20px;margin:0 0 12px}
+.eyebrow{color:var(--mute);font-size:13px;letter-spacing:.8px;text-transform:uppercase}
+.mute{color:var(--mute)}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+input,select,textarea{font:inherit;font-size:16px;color:var(--text);background:var(--card2);
+  border:1px solid var(--line);border-radius:12px;padding:12px;width:100%;min-height:46px;appearance:none;-webkit-appearance:none}
+textarea{min-height:120px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.odo{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#232a32,#1a1f25)}
+.odo .big{font-size:38px;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.odo .big small{font-size:16px;font-weight:500;color:var(--mute);margin-left:4px}
+.btn{min-height:46px;padding:0 18px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:600}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--over);border-color:#5a2a2a}
+.btn.small{min-height:38px;padding:0 14px;font-size:15px}
+.btn.block{width:100%}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.chip{padding:6px 12px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:14px;font-weight:600}
+.chip.over{color:var(--over);border-color:#5a2a2a}.chip.soon{color:var(--soon);border-color:#5a4a1c}.chip.ok{color:var(--ok);border-color:#1f4a2a}
+
+.item{cursor:pointer}
+.item .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.item .name{font-weight:650;font-size:17px}
+.item .stat{margin-top:4px;font-size:15px}
+.item .sub{margin-top:6px;font-size:13px;color:var(--mute)}
+.lv-over .stat{color:var(--over)} .lv-soon .stat{color:var(--soon)} .lv-ok .stat{color:var(--ok)} .lv-unset .stat{color:var(--mute)}
+.bar{height:6px;border-radius:99px;background:var(--card2);margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--ok)}
+.lv-soon .bar i{background:var(--soon)} .lv-over .bar i{background:var(--over)} .lv-unset .bar i{background:var(--unset)}
+.done{min-height:40px;padding:0 16px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700}
+
+.entry .top{display:flex;justify-content:space-between;gap:10px}
+.entry .t{font-weight:650}
+.entry .cost{font-variant-numeric:tabular-nums;font-weight:600}
+.entry .meta{color:var(--mute);font-size:14px;margin-top:2px}
+.entry .note{margin-top:6px;font-size:15px}
+
+.seg{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{white-space:nowrap;padding:9px 14px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-weight:600;font-size:15px}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.check{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 4px;border-bottom:1px solid var(--line);min-height:54px}
+.check .box{flex:none;width:28px;height:28px;border-radius:9px;border:2px solid #4a545f;display:grid;place-items:center}
+.check.on .box{background:var(--ok);border-color:var(--ok)}
+.check.on .box:after{content:"";width:6px;height:12px;border:solid #07200d;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.check.on .txt{color:var(--mute);text-decoration:line-through}
+.check .del{margin-left:auto;color:var(--over);font-size:15px;font-weight:600;padding:8px}
+.prog{height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:6px 0 4px}
+.prog i{display:block;height:100%;background:var(--ok);transition:width .2s}
+
+.fld{display:block;margin:0 0 12px}
+.fld>span{display:block;color:var(--mute);font-size:13px;margin:0 0 5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.help{color:var(--mute);font-size:14px}
+.banner{background:#2a2111;border:1px solid #5a4a1c;color:#f1d98a;border-radius:14px;padding:12px 14px;margin:10px 0;font-size:15px}
+.banner button{color:var(--accent);font-weight:700;margin-top:6px;display:block}
+
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;
+  background:rgba(17,20,24,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+#tabs .in{display:flex;width:100%;max-width:640px}
+#tabs button{flex:1;height:var(--tabh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--mute);font-size:11px;font-weight:600}
+#tabs button.on{color:var(--accent)}
+#tabs svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:640px;margin:0 auto;
+  background:var(--card);border:1px solid var(--line);border-radius:22px 22px 0 0;
+  padding:10px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:90vh;overflow:auto}
+.sheet .grab{width:42px;height:5px;border-radius:9px;background:#3a444f;margin:0 auto 12px}
+.sheet .actions{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+.sheet .actions .btn{flex:1;min-width:110px}
+.err{color:var(--over);font-size:14px;min-height:20px;margin:0 0 6px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 16px);
+  background:#e9edf1;color:#111;padding:10px 16px;border-radius:12px;font-weight:600;font-size:15px;z-index:60;
+  opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+body.sheet-open{overflow:hidden}
+.empty{text-align:center;color:var(--mute);padding:26px 10px}
+.spacer{height:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="tabs"><div class="in"></div></nav>
+<div id="sheet-root"></div>
+<div id="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------- helpers ---------- */
+const KEY = 'maintenance.v1';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const pad = n => String(n).padStart(2, '0');
+const toISO = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayISO = () => toISO(new Date());
+const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const daysBetween = (a, b) => Math.round((parseISO(b) - parseISO(a)) / 86400000);
+const addDays = (iso, n) => { const d = parseISO(iso); d.setDate(d.getDate() + n); return toISO(d); };
+const addMonths = (iso, n) => {
+  const d = parseISO(iso), day = d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth() + n);
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  return toISO(d);
+};
+const fmtNum = n => Math.round(n).toLocaleString('en-US');
+const fmtDate = iso => iso ? parseISO(iso).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : '';
+const fmtShort = iso => parseISO(iso).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+const money = n => '$' + (Number(n) || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+const num = v => { const x = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isFinite(x) ? x : null; };
+const dayText = d => d < 14 ? d + (d === 1 ? ' day' : ' days') : d < 60 ? Math.round(d / 7) + ' wks' : Math.round(d / 30.44) + ' mo';
+
+/* ---------- starter data ---------- */
+function starterItems() {
+  const mk = (name, mi, t, tu) => ({id: uid(), name, mi: mi || null, t: t || null, tu: tu || 'months', lastMi: null, lastDate: null});
+  return [
+    mk('Engine oil & filter', 10000, 12, 'months'),
+    mk('Chain lube', 300),
+    mk('Chain clean & slack check', 1000),
+    mk('Tire pressure check', null, 2, 'weeks'),
+    mk('Brake pads inspection', null, 6, 'months'),
+    mk('Brake fluid', null, 24, 'months'),
+    mk('Coolant', null, 36, 'months'),
+    mk('Air filter', 12000)
+  ];
+}
+function starterLists() {
+  const mk = (name, arr) => ({id: uid(), name, items: arr.map(t => ({id: uid(), t, done: false}))});
+  return [
+    mk('Pre-ride (T-CLOCS)', [
+      'Tires: pressure, tread, nails or cuts',
+      'Wheels: rims/spokes, axle nuts',
+      'Controls: levers, throttle snaps back, cables',
+      'Brakes: lever & pedal feel, fluid level, pads',
+      'Lights: high/low beam, brake light, signals, horn',
+      'Battery & connections',
+      'Oil level & coolant level',
+      'Chain: slack and lube',
+      'Leaks under the bike?',
+      'Fasteners: bars, mirrors, visible bolts',
+      'Side stand & kill switch',
+      'Fuel',
+      'Gear: helmet, gloves, jacket, boots'
+    ]),
+    mk('Overland trip packing', [
+      'Tire repair kit (plugs / tubes) & levers',
+      'Tire pump or CO2 inflator',
+      'Tool roll & spare fuses',
+      'Zip ties, duct tape, spare master link',
+      'Tie-down straps / bungees',
+      'Headlamp',
+      'First aid kit',
+      'Water (3 L+) & snacks',
+      'Offline maps downloaded',
+      'Phone mount, charger & battery pack',
+      'Satellite messenger',
+      'License, registration & insurance',
+      'Cash',
+      'Rain gear & warm layer',
+      'Sunscreen & sunglasses'
+    ])
+  ];
+}
+function fresh() {
+  return {v: 1, bike: {name: 'Triumph Street Scrambler', notes: ''}, odo: [], items: starterItems(), log: [], lists: starterLists(), lastBackup: null};
+}
+function migrate(s) {
+  const f = fresh();
+  s = s && typeof s === 'object' ? s : {};
+  return {
+    v: 1,
+    bike: Object.assign(f.bike, s.bike || {}),
+    odo: Array.isArray(s.odo) ? s.odo.filter(o => o && o.d && isFinite(o.m)) : [],
+    items: Array.isArray(s.items) ? s.items : f.items,
+    log: Array.isArray(s.log) ? s.log : [],
+    lists: Array.isArray(s.lists) ? s.lists : f.lists,
+    lastBackup: s.lastBackup || null
+  };
+}
+
+/* ---------- state ---------- */
+let S = load();
+const UI = {tab: 'due', listId: null, edit: false};
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) return migrate(JSON.parse(raw)); } catch (e) {}
+  return fresh();
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
+  catch (e) { toast('Could not save - storage is full or blocked'); return false; }
+}
+const curOdo = () => S.odo.length ? S.odo[S.odo.length - 1].m : null;
+const latestOdoDate = () => S.odo.length ? S.odo[S.odo.length - 1].d : '0000-00-00';
+function setOdo(m, d) {
+  const i = S.odo.findIndex(o => o.d === d);
+  if (i >= 0) S.odo[i].m = m; else S.odo.push({d, m});
+  S.odo.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+}
+const itemById = id => S.items.find(i => i.id === id);
+
+function pace() { // miles per day over the last ~4 months of odometer readings
+  if (S.odo.length < 2) return null;
+  const last = S.odo[S.odo.length - 1];
+  const recent = S.odo.filter(o => o.d >= addDays(last.d, -120));
+  const first = recent[0];
+  const days = daysBetween(first.d, last.d), mi = last.m - first.m;
+  return days >= 7 && mi > 0 ? mi / days : null;
+}
+
+/* ---------- service-due maths ---------- */
+const unitDays = it => it.tu === 'months' ? 30.44 : it.tu === 'weeks' ? 7 : 1;
+function dueDate(it) {
+  if (!it.t || !it.lastDate) return null;
+  return it.tu === 'months' ? addMonths(it.lastDate, it.t) : addDays(it.lastDate, it.tu === 'weeks' ? it.t * 7 : it.t);
+}
+function calc(it) {
+  const cur = curOdo(), today = todayISO();
+  const hasMi = !!(it.mi && it.lastMi != null && cur != null);
+  const hasT = !!(it.t && it.lastDate);
+  if (!hasMi && !hasT) return {level: 'unset', score: 9};
+  let miLeft = null, dLeft = null, due = null;
+  const scores = [];
+  if (hasMi) { miLeft = it.lastMi + it.mi - cur; scores.push(miLeft / it.mi); }
+  if (hasT) { due = dueDate(it); dLeft = daysBetween(today, due); scores.push(dLeft / (it.t * unitDays(it))); }
+  const over = (hasMi && miLeft <= 0) || (hasT && dLeft <= 0);
+  const soon = (hasMi && miLeft <= Math.max(50, 0.15 * it.mi)) || (hasT && dLeft <= Math.max(3, 0.15 * it.t * unitDays(it)));
+  return {level: over ? 'over' : soon ? 'soon' : 'ok', score: Math.min(...scores), hasMi, hasT, miLeft, dLeft, due};
+}
+function intervalText(it) {
+  const p = [];
+  if (it.mi) p.push('every ' + fmtNum(it.mi) + ' mi');
+  if (it.t) p.push((p.length ? 'or ' : 'every ') + it.t + ' ' + (it.t === 1 ? it.tu.replace(/s$/, '') : it.tu));
+  return p.join(' ');
+}
+function statusText(it, c) {
+  if (c.level === 'unset') return 'Not set - tap to enter when you last did this';
+  const parts = [];
+  if (c.hasMi) parts.push(c.miLeft > 0 ? fmtNum(c.miLeft) + ' mi left' : 'Overdue by ' + fmtNum(-c.miLeft) + ' mi');
+  if (c.hasT) parts.push(c.dLeft > 0 ? 'due ' + (c.dLeft > 150 ? fmtDate(c.due) : fmtShort(c.due)) + ' (' + dayText(c.dLeft) + ')' : c.dLeft === 0 ? 'due today' : 'overdue by ' + dayText(-c.dLeft));
+  let s = parts.join('  |  ');
+  const p = pace();
+  if (c.hasMi && c.miLeft > 0 && p) {
+    const days = Math.ceil(c.miLeft / p);
+    if (days <= 730) s += '  |  about ' + fmtShort(addDays(todayISO(), days)) + ' at your pace';
+  }
+  return s;
+}
+
+/* ---------- views ---------- */
+const ICON = {
+  due: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  log: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+  lists: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>',
+  bike: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'
+};
+const TABS = [['due', 'Due'], ['log', 'Log'], ['lists', 'Lists'], ['bike', 'Bike']];
+
+function viewDue() {
+  const cur = curOdo();
+  const rows = S.items.map(it => ({it, c: calc(it)})).sort((a, b) => a.c.score - b.c.score);
+  const n = l => rows.filter(r => r.c.level === l).length;
+  let h = `<div class="eyebrow">${esc(S.bike.name)}</div><h1>Service due</h1>`;
+  h += `<div class="card odo"><div><div class="eyebrow">Odometer</div>
+    <div class="big">${cur != null ? fmtNum(cur) : '--'}<small>mi</small></div></div>
+    <button class="btn primary" data-act="odo">${cur != null ? 'Update' : 'Set'}</button></div>`;
+  const chips = [];
+  if (n('over')) chips.push(`<span class="chip over">${n('over')} overdue</span>`);
+  if (n('soon')) chips.push(`<span class="chip soon">${n('soon')} due soon</span>`);
+  if (n('ok')) chips.push(`<span class="chip ok">${n('ok')} good</span>`);
+  if (n('unset')) chips.push(`<span class="chip">${n('unset')} not set</span>`);
+  if (chips.length) h += `<div class="chips">${chips.join('')}</div>`;
+  if (S.log.length && (!S.lastBackup || daysBetween(S.lastBackup, todayISO()) > 30)) {
+    h += `<div class="banner">Your data lives only on this phone. Save a backup file once in a while.
+      <button data-act="tab" data-id="bike">Go to backup</button></div>`;
+  }
+  if (!rows.length) h += `<div class="empty">No service items yet.</div>`;
+  rows.forEach(({it, c}) => {
+    const pct = c.level === 'unset' ? 0 : Math.max(0, Math.min(1, 1 - c.score)) * 100;
+    h += `<div class="card item lv-${c.level}" data-act="edit-item" data-id="${it.id}">
+      <div class="row"><div class="name">${esc(it.name)}</div><button class="done" data-act="done" data-id="${it.id}">Done</button></div>
+      <div class="stat">${esc(statusText(it, c))}</div>
+      <div class="bar"><i style="width:${pct.toFixed(0)}%"></i></div>
+      <div class="sub">${esc(intervalText(it))}</div></div>`;
+  });
+  h += `<button class="btn block" data-act="add-item">+ Add service item</button>`;
+  return h;
+}
+
+function viewLog() {
+  const log = [...S.log].sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : (b.m || 0) - (a.m || 0));
+  const yr = String(new Date().getFullYear());
+  const spentYear = S.log.filter(e => e.d.startsWith(yr)).reduce((s, e) => s + (Number(e.cost) || 0), 0);
+  const spentAll = S.log.reduce((s, e) => s + (Number(e.cost) || 0), 0);
+  let h = `<div class="eyebrow">${esc(S.bike.name)}</div><h1>Service log</h1>`;
+  if (S.log.length) h += `<div class="chips"><span class="chip">${yr}: ${money(spentYear)}</span><span class="chip">All time: ${money(spentAll)}</span></div>`;
+  h += `<button class="btn primary block" data-act="add-log">+ Add entry</button><div class="spacer"></div>`;
+  if (!log.length) h += `<div class="empty">Nothing logged yet.<br>Tap <b>Done</b> on a service item, or add an entry here.</div>`;
+  log.forEach(e => {
+    h += `<div class="card entry" data-act="edit-log" data-id="${e.id}">
+      <div class="top"><div class="t">${esc(e.item)}</div>${e.cost ? `<div class="cost">${money(e.cost)}</div>` : ''}</div>
+      <div class="meta">${fmtDate(e.d)}${e.m != null ? ' | ' + fmtNum(e.m) + ' mi' : ''}</div>
+      ${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}</div>`;
+  });
+  return h;
+}
+
+function viewLists() {
+  if (!S.lists.length) {
+    return `<div class="eyebrow">${esc(S.bike.name)}</div><h1>Checklists</h1>
+      <div class="empty">No checklists.</div><button class="btn primary block" data-act="new-list">+ New checklist</button>`;
+  }
+  if (!S.lists.some(l => l.id === UI.listId)) UI.listId = S.lists[0].id;
+  const L = S.lists.find(l => l.id === UI.listId);
+  const done = L.items.filter(i => i.done).length, total = L.items.length;
+  let h = `<div class="eyebrow">${esc(S.bike.name)}</div><h1>Checklists</h1>`;
+  h += `<div class="seg">${S.lists.map(l => `<button class="${l.id === L.id ? 'on' : ''}" data-act="pick-list" data-id="${l.id}">${esc(l.name)}</button>`).join('')}
+    <button data-act="new-list">+ New</button></div>`;
+  h += `<div class="row" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="help"><b style="color:var(--text)">${done}</b> of ${total} done${total && done === total ? ' - good to go' : ''}</div>
+    <div style="display:flex;gap:8px"><button class="btn small" data-act="reset-list">Reset</button>
+    <button class="btn small ${UI.edit ? 'primary' : ''}" data-act="toggle-edit">${UI.edit ? 'Done editing' : 'Edit'}</button></div></div>
+    <div class="prog"><i style="width:${total ? (done / total * 100).toFixed(0) : 0}%"></i></div>`;
+  L.items.forEach(i => {
+    h += UI.edit
+      ? `<div class="check"><span class="txt">${esc(i.t)}</span><button class="del" data-act="del-item-l" data-id="${i.id}">Remove</button></div>`
+      : `<button class="check ${i.done ? 'on' : ''}" role="checkbox" aria-checked="${i.done}" data-act="toggle" data-id="${i.id}"><span class="box"></span><span class="txt">${esc(i.t)}</span></button>`;
+  });
+  if (UI.edit) {
+    h += `<div class="spacer"></div><label class="fld"><span>Add an item</span><div style="display:flex;gap:8px">
+      <input id="newItemTxt" placeholder="e.g. Tank bag" autocomplete="off"><button class="btn primary" data-act="add-item-l">Add</button></div></label>
+      <div class="spacer"></div><button class="btn danger block" data-act="del-list">Delete this checklist</button>`;
+  }
+  return h;
+}
+
+function viewBike() {
+  const standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  let h = `<div class="eyebrow">Settings</div><h1>My bike</h1>`;
+  h += `<div class="card"><label class="fld"><span>Bike name</span><input id="bikeName" value="${esc(S.bike.name)}" autocomplete="off"></label>
+    <label class="fld" style="margin:0"><span>Notes (tire pressures, oil type, torque specs, VIN...)</span>
+    <textarea id="bikeNotes" placeholder="Anything you want handy">${esc(S.bike.notes)}</textarea></label></div>`;
+  h += `<div class="card"><h2>Backup</h2>
+    <p class="help" style="margin-top:0">Everything is stored on this phone only. Save a backup file now and then (to Files, iCloud or email) so you can restore it on a new phone or if the data is ever cleared.</p>
+    <div class="two"><button class="btn primary" data-act="export">Save backup</button><button class="btn" data-act="import">Restore backup</button></div>
+    <p class="help" style="margin-bottom:0">${S.lastBackup ? 'Last backup: ' + fmtDate(S.lastBackup) : 'No backup saved yet.'}</p></div>`;
+  h += `<div class="card"><h2>About the starter intervals</h2>
+    <p class="help" style="margin:0">The service items are general starting points, not official figures. Tap any item on the Due tab to set the intervals to match your owner's manual or dealer's schedule.</p></div>`;
+  if (!standalone) h += `<div class="card"><h2>Install on iPhone</h2>
+    <p class="help" style="margin:0">In Safari tap the Share button, then <b>Add to Home Screen</b>. It will open full-screen like an app and work offline.</p></div>`;
+  h += `<button class="btn danger block" data-act="erase">Erase all data</button>`;
+  return h;
+}
+
+function render() {
+  const y = window.scrollY;
+  $('#app').innerHTML = UI.tab === 'due' ? viewDue() : UI.tab === 'log' ? viewLog() : UI.tab === 'lists' ? viewLists() : viewBike();
+  $('#tabs .in').innerHTML = TABS.map(([id, label]) =>
+    `<button class="${UI.tab === id ? 'on' : ''}" data-act="tab" data-id="${id}" aria-label="${label}"><svg viewBox="0 0 24 24">${ICON[id]}</svg>${label}</button>`).join('');
+  window.scrollTo(0, y);
+}
+
+/* ---------- sheets ---------- */
+let sheetActions = [];
+function openSheet(title, body, actions) {
+  sheetActions = actions;
+  $('#sheet-root').innerHTML = `<div class="overlay" data-act="close"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grab"></div><h2>${esc(title)}</h2>${body}
+    <div class="err" id="f-err"></div>
+    <div class="actions">${actions.map((a, i) => `<button class="btn ${a.cls || ''}" data-sa="${i}">${esc(a.label)}</button>`).join('')}</div></div>`;
+  document.body.classList.add('sheet-open');
+}
+function closeSheet() { $('#sheet-root').innerHTML = ''; document.body.classList.remove('sheet-open'); }
+const fld = (label, id, val, attrs) => `<label class="fld"><span>${esc(label)}</span><input id="${id}" value="${esc(val == null ? '' : val)}" ${attrs || ''}></label>`;
+const err = msg => { const e = $('#f-err'); if (e) e.textContent = msg; return false; };
+const val = id => $('#' + id).value;
+
+function sheetOdo() {
+  const cur = curOdo();
+  openSheet('Update odometer',
+    fld('Odometer (mi)', 'f-m', cur != null ? cur : '', 'inputmode="decimal" autocomplete="off"') + fld('Date', 'f-d', todayISO(), 'type="date"'),
+    [{label: 'Save', cls: 'primary', fn: () => {
+      const m = num(val('f-m')), d = val('f-d') || todayISO();
+      if (m == null || m < 0) return err('Enter your odometer reading.');
+      if (cur != null && m < cur && d >= latestOdoDate() && !confirm('That is lower than your last reading (' + fmtNum(cur) + ' mi). Use it anyway?')) return false;
+      setOdo(m, d); save(); render(); toast('Odometer updated'); return true;
+    }}, {label: 'Cancel', fn: () => true}]);
+}
+
+function recalc(itemId) {
+  const it = itemById(itemId); if (!it) return;
+  const es = S.log.filter(e => e.itemId === itemId).sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : (b.m || 0) - (a.m || 0));
+  if (es.length) { it.lastDate = es[0].d; if (es[0].m != null) it.lastMi = es[0].m; }
+}
+
+function sheetDone(id) {
+  const it = itemById(id); if (!it) return;
+  const cur = curOdo();
+  openSheet('Done: ' + it.name,
+    `<div class="two">${fld('Date', 'f-d', todayISO(), 'type="date"')}${fld('Odometer (mi)', 'f-m', cur != null ? cur : '', 'inputmode="decimal" autocomplete="off"')}</div>` +
+    fld('Cost (optional)', 'f-c', '', 'inputmode="decimal" placeholder="$" autocomplete="off"') +
+    fld('Notes (optional)', 'f-n', '', 'placeholder="Brand, parts, who did it..." autocomplete="off"'),
+    [{label: 'Save', cls: 'primary', fn: () => {
+      const d = val('f-d') || todayISO(), m = num(val('f-m')), cost = num(val('f-c'));
+      if (it.mi && m == null) return err('Enter the odometer reading for this service.');
+      S.log.push({id: uid(), d, m, item: it.name, itemId: it.id, note: val('f-n').trim(), cost});
+      it.lastDate = d; if (m != null) it.lastMi = m;
+      recalc(it.id);
+      if (m != null && d >= latestOdoDate()) setOdo(m, d);
+      save(); render(); toast('Logged: ' + it.name); return true;
+    }}, {label: 'Cancel', fn: () => true}]);
+}
+
+function sheetItem(id) {
+  const it = id ? itemById(id) : null;
+  const o = it || {name: '', mi: null, t: null, tu: 'months', lastDate: null, lastMi: null};
+  openSheet(it ? 'Edit service item' : 'New service item',
+    fld('Name', 'f-name', o.name, 'autocomplete="off"') +
+    `<div class="two"><label class="fld"><span>Every (miles)</span><input id="f-mi" value="${o.mi || ''}" inputmode="numeric" placeholder="e.g. 5000"></label>
+      <div class="fld"><span>Or every (time)</span>
+      <div style="display:flex;gap:6px"><input id="f-t" value="${o.t || ''}" inputmode="numeric" placeholder="12" style="width:40%">
+      <select id="f-tu"><option value="days"${o.tu === 'days' ? ' selected' : ''}>days</option><option value="weeks"${o.tu === 'weeks' ? ' selected' : ''}>weeks</option><option value="months"${o.tu === 'months' ? ' selected' : ''}>months</option></select></div></div></div>
+    <p class="help" style="margin-top:0">Use one or both. It is due when either one runs out.</p>
+    <div class="two">${fld('Last done (date)', 'f-ld', o.lastDate || '', 'type="date"')}${fld('Last done (odometer)', 'f-lm', o.lastMi != null ? o.lastMi : '', 'inputmode="decimal"')}</div>`,
+    [{label: 'Save', cls: 'primary', fn: () => {
+      const name = val('f-name').trim(), mi = num(val('f-mi')), t = num(val('f-t'));
+      if (!name) return err('Give it a name.');
+      if (!(mi > 0) && !(t > 0)) return err('Set a mileage interval, a time interval, or both.');
+      const patch = {name, mi: mi > 0 ? mi : null, t: t > 0 ? t : null, tu: val('f-tu'), lastDate: val('f-ld') || null, lastMi: num(val('f-lm'))};
+      if (it) Object.assign(it, patch); else S.items.push(Object.assign({id: uid()}, patch));
+      save(); render(); return true;
+    }}].concat(it ? [{label: 'Delete', cls: 'danger', fn: () => {
+      if (!confirm('Delete "' + it.name + '"? Past log entries are kept.')) return false;
+      S.items = S.items.filter(x => x.id !== it.id); save(); render(); return true;
+    }}] : []).concat([{label: 'Cancel', fn: () => true}]));
+}
+
+function sheetLog(id) {
+  const e = id ? S.log.find(x => x.id === id) : null;
+  const o = e || {d: todayISO(), m: curOdo(), item: '', note: '', cost: null};
+  openSheet(e ? 'Edit entry' : 'Add log entry',
+    `<datalist id="names">${S.items.map(i => `<option value="${esc(i.name)}">`).join('')}</datalist>` +
+    fld('What was done', 'f-item', o.item, 'list="names" autocomplete="off" placeholder="e.g. Oil & filter, new tires"') +
+    `<div class="two">${fld('Date', 'f-d', o.d, 'type="date"')}${fld('Odometer (mi)', 'f-m', o.m != null ? o.m : '', 'inputmode="decimal"')}</div>` +
+    fld('Cost (optional)', 'f-c', o.cost != null ? o.cost : '', 'inputmode="decimal" placeholder="$"') +
+    fld('Notes (optional)', 'f-n', o.note, 'autocomplete="off"'),
+    [{label: 'Save', cls: 'primary', fn: () => {
+      const name = val('f-item').trim(), d = val('f-d') || todayISO(), m = num(val('f-m'));
+      if (!name) return err('Say what was done.');
+      const match = S.items.find(i => i.name.toLowerCase() === name.toLowerCase());
+      const patch = {d, m, item: match ? match.name : name, itemId: match ? match.id : null, note: val('f-n').trim(), cost: num(val('f-c'))};
+      const oldItem = e ? e.itemId : null;
+      if (e) Object.assign(e, patch); else S.log.push(Object.assign({id: uid()}, patch));
+      if (oldItem) recalc(oldItem);
+      if (patch.itemId) recalc(patch.itemId);
+      if (m != null && d >= latestOdoDate()) setOdo(m, d);
+      save(); render(); return true;
+    }}].concat(e ? [{label: 'Delete', cls: 'danger', fn: () => {
+      if (!confirm('Delete this log entry?')) return false;
+      S.log = S.log.filter(x => x.id !== e.id); if (e.itemId) recalc(e.itemId); save(); render(); return true;
+    }}] : []).concat([{label: 'Cancel', fn: () => true}]));
+}
+
+function sheetNewList() {
+  openSheet('New checklist', fld('Name', 'f-name', '', 'autocomplete="off" placeholder="e.g. Track day, Weekend camping"'),
+    [{label: 'Create', cls: 'primary', fn: () => {
+      const name = val('f-name').trim(); if (!name) return err('Give it a name.');
+      const l = {id: uid(), name, items: []}; S.lists.push(l); UI.listId = l.id; UI.edit = true; save(); render(); return true;
+    }}, {label: 'Cancel', fn: () => true}]);
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- backup / restore ---------- */
+async function exportData() {
+  const payload = JSON.stringify({app: 'maintenance', v: 1, exported: new Date().toISOString(), data: S}, null, 2);
+  const fname = 'maintenance-backup-' + todayISO() + '.json';
+  const file = new File([payload], fname, {type: 'application/json'});
+  try {
+    if (navigator.canShare && navigator.canShare({files: [file]})) {
+      await navigator.share({files: [file], title: 'Maintenance backup'});
+    } else {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    S.lastBackup = todayISO(); save(); render(); toast('Backup saved');
+  } catch (e) { if (e && e.name !== 'AbortError') toast('Could not save backup'); }
+}
+function importData(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const obj = JSON.parse(r.result);
+      const data = obj && obj.data ? obj.data : obj;
+      if (!data || !Array.isArray(data.items) || !Array.isArray(data.log)) throw new Error('bad');
+      if (!confirm('Replace everything on this phone with the backup (' + data.log.length + ' log entries)?')) return;
+      S = migrate(data); save(); UI.tab = 'due'; render(); toast('Backup restored');
+    } catch (e) { toast("That file isn't a valid backup"); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', ev => {
+  const sa = ev.target.closest('[data-sa]');
+  if (sa) { const a = sheetActions[+sa.dataset.sa]; if (a && a.fn() === true) closeSheet(); return; }
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  const L = () => S.lists.find(l => l.id === UI.listId);
+  switch (act) {
+    case 'close': closeSheet(); break;
+    case 'tab': UI.tab = id; UI.edit = false; window.scrollTo(0, 0); render(); break;
+    case 'odo': sheetOdo(); break;
+    case 'done': ev.stopPropagation(); sheetDone(id); break;
+    case 'edit-item': sheetItem(id); break;
+    case 'add-item': sheetItem(null); break;
+    case 'add-log': sheetLog(null); break;
+    case 'edit-log': sheetLog(id); break;
+    case 'pick-list': UI.listId = id; UI.edit = false; render(); break;
+    case 'new-list': sheetNewList(); break;
+    case 'toggle': { const i = L().items.find(x => x.id === id); i.done = !i.done; save(); render(); break; }
+    case 'reset-list': L().items.forEach(i => i.done = false); save(); render(); break;
+    case 'toggle-edit': UI.edit = !UI.edit; render(); break;
+    case 'del-item-l': L().items = L().items.filter(x => x.id !== id); save(); render(); break;
+    case 'add-item-l': {
+      const inp = $('#newItemTxt'), t = inp.value.trim(); if (!t) break;
+      L().items.push({id: uid(), t, done: false}); save(); render(); const n = $('#newItemTxt'); if (n) n.focus(); break;
+    }
+    case 'del-list':
+      if (confirm('Delete the checklist "' + L().name + '"?')) { S.lists = S.lists.filter(l => l.id !== UI.listId); UI.edit = false; save(); render(); }
+      break;
+    case 'export': exportData(); break;
+    case 'import': $('#importFile').click(); break;
+    case 'erase':
+      if (confirm('Erase ALL data on this phone? This cannot be undone.') && confirm('Really erase everything?')) {
+        S = fresh(); save(); UI.tab = 'due'; render(); toast('All data erased');
+      }
+      break;
+  }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target.id === 'newItemTxt') { ev.preventDefault(); document.querySelector('[data-act="add-item-l"]').click(); }
+});
+document.addEventListener('change', ev => {
+  if (ev.target.id === 'bikeName') { S.bike.name = ev.target.value.trim() || 'My motorcycle'; save(); }
+  if (ev.target.id === 'importFile' && ev.target.files[0]) { importData(ev.target.files[0]); ev.target.value = ''; }
+});
+let noteT;
+document.addEventListener('input', ev => {
+  if (ev.target.id === 'bikeNotes') { clearTimeout(noteT); const v = ev.target.value; noteT = setTimeout(() => { S.bike.notes = v; save(); }, 400); }
+});
+
+/* ---------- start ---------- */
+render();
+if (curOdo() == null) setTimeout(sheetOdo, 250);   // first run: ask for the odometer
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+})();
+</script>
+</body>
+</html>
