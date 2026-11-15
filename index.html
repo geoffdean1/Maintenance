@@ -109,6 +109,13 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 body.sheet-open{overflow:hidden}
 .empty{text-align:center;color:var(--mute);padding:26px 10px}
 .spacer{height:8px}
+.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-left:8px;vertical-align:middle;white-space:nowrap}
+.tag.tri{color:var(--accent);border-color:#6b4217}
+.specs{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:0}
+.specs dt{color:var(--mute)} .specs dd{margin:0}
+.banner.bad{background:#2b1414;border-color:#6b2a2a;color:#f5b5b0}
+.banner.info{background:#13222f;border-color:#2b4a63;color:#b7d6ee}
+.banner .x{color:var(--mute);font-weight:600}
 </style>
 </head>
 <body>
@@ -146,65 +153,84 @@ const money = n => '$' + (Number(n) || 0).toLocaleString('en-US', {minimumFracti
 const num = v => { const x = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isFinite(x) ? x : null; };
 const dayText = d => d < 14 ? d + (d === 1 ? ' day' : ' days') : d < 60 ? Math.round(d / 7) + ' wks' : Math.round(d / 30.44) + ' mo';
 
-/* ---------- starter data ---------- */
-function starterItems() {
-  const mk = (name, mi, t, tu) => ({id: uid(), name, mi: mi || null, t: t || null, tu: tu || 'months', lastMi: null, lastDate: null});
-  return [
-    mk('Engine oil & filter', 10000, 12, 'months'),
-    mk('Chain lube', 300),
-    mk('Chain clean & slack check', 1000),
-    mk('Tire pressure check', null, 2, 'weeks'),
-    mk('Brake pads inspection', null, 6, 'months'),
-    mk('Brake fluid', null, 24, 'months'),
-    mk('Coolant', null, 36, 'months'),
-    mk('Air filter', 12000)
-  ];
+/* ---------- starter data: 2019 Triumph Street Scrambler ---------- */
+const SCHED_ID = 'ss2019-v1';
+// Source: Triumph's service schedule for the Street Scrambler (same handbook covers 2017-2020 models).
+// src:'triumph' = from the schedule; src:'suggested' = my own reminder, not a Triumph interval.
+const SCHED = [
+  {name: 'Engine oil & filter', mi: 10000, t: 12, tu: 'months', src: 'triumph',
+   note: 'Replace oil and filter together. Oil: 10W-40 or 10W-50, semi or fully synthetic, API SH or higher, JASO MA (Castrol Power 1 Racing 4T 10W-40 is Triumph\'s example). Filter: Triumph T1218001 or Hiflofiltro HF204RC.'},
+  {name: 'Air filter', mi: 10000, t: 12, tu: 'months', src: 'triumph',
+   note: 'Replace at every service. Triumph T2201057 or K&N TB-9016.'},
+  {name: 'Spark plugs', mi: 20000, src: 'triumph',
+   note: 'Replace at 20,000 mi (Triumph also lists a check at 10,000 and 30,000 mi). NGK LMAR8A-9, gap 0.9 mm.'},
+  {name: 'Valve clearances & cam timing', mi: 20000, src: 'triumph', alias: ['Valve clearances'],
+   note: 'Check valve clearances and camshaft timing. Usually a dealer job.'},
+  {name: 'Fuel filter', mi: 20000, src: 'triumph',
+   note: 'Replace at 20,000 mi. Triumph\'s table also has a yearly column for this item, so confirm with your handbook or dealer.'},
+  {name: 'Steering head bearings', mi: 20000, src: 'triumph',
+   note: 'Check and lubricate at 20,000 mi.'},
+  {name: 'Fork oil', mi: 40000, src: 'triumph', note: 'Replace at 40,000 mi.'},
+  {name: 'Brake fluid', t: 24, tu: 'months', src: 'triumph',
+   note: 'Replace every 2 years regardless of mileage. DOT 4.'},
+  {name: 'Coolant', t: 36, tu: 'months', src: 'triumph',
+   note: 'Replace every 3 years regardless of mileage. HOAT, 50% ethylene glycol premix (Zerex G05 matches).'},
+  {name: 'Fuel & vapor hoses', t: 48, tu: 'months', src: 'triumph',
+   note: 'Replace fuel and evaporative-loss hoses every 4 years (the schedule lists this at the 40,000 mi service).'},
+  {name: 'Chain lube', mi: 200, src: 'triumph',
+   note: 'Triumph says lubricate every 200 mi (300 km), and after rain or washing the bike. Motul Chain Paste is their example.'},
+  {name: 'Chain wear check', mi: 500, src: 'triumph', alias: ['Chain clean & slack check'],
+   note: 'Every 500 mi (800 km): look for stiff links, damaged or rounded teeth, rust. Check slack before every ride.'},
+  {name: 'Tire pressure check', t: 2, tu: 'weeks', src: 'suggested',
+   note: 'A handy reminder, not a Triumph interval. Triumph says to check pressures before every ride.'},
+  {name: 'Brake pad wear check', t: 6, tu: 'months', src: 'suggested', alias: ['Brake pads inspection'],
+   note: 'Triumph says to check pad wear before rides and at each service. 2019 front pads: T2026565. Rear: T2022955.'}
+];
+const SPECS = [
+  ['Engine oil', '10W-40 or 10W-50, semi/full synthetic, API SH+, JASO MA'],
+  ['Oil filter', 'Triumph T1218001 or Hiflofiltro HF204RC'],
+  ['Air filter', 'Triumph T2201057 or K&N TB-9016'],
+  ['Spark plugs', 'NGK LMAR8A-9, gap 0.9 mm'],
+  ['Coolant', 'HOAT, 50% ethylene glycol premix'],
+  ['Brake fluid', 'DOT 4'],
+  ['Front pads (2019)', 'Triumph T2026565'],
+  ['Rear pads', 'Triumph T2022955'],
+  ['Clutch cable play', '2-3 mm']
+];
+const OLD_PRE = ['Tires: pressure, tread, nails or cuts', 'Wheels: rims/spokes, axle nuts',
+  'Controls: levers, throttle snaps back, cables', 'Brakes: lever & pedal feel, fluid level, pads',
+  'Lights: high/low beam, brake light, signals, horn', 'Battery & connections', 'Oil level & coolant level',
+  'Chain: slack and lube', 'Leaks under the bike?', 'Fasteners: bars, mirrors, visible bolts',
+  'Side stand & kill switch', 'Fuel', 'Gear: helmet, gloves, jacket, boots'];
+const PRE_NAME = 'Pre-ride (Triumph daily checks)';
+const NEW_PRE = ['Engine & cooling system: check for leaks', 'Coolant level: check/adjust',
+  'Clutch cable: operation and 2-3 mm free play', 'Tires: wear and damage', 'Tire pressures: check/adjust (cold)',
+  'Wheels: inspect for damage', 'Steering: moves freely', 'Suspension (front & rear): damage, leaks, smooth action',
+  'Brakes: operation, no leaks', 'Brake pad wear', 'Brake fluid level', 'Drive chain: slack and lubrication',
+  'Lights, instruments & electrics', 'Bank angle indicators (feelers): wear',
+  'Side stand: wear & smooth operation', 'Fuel', 'Gear: helmet, gloves, jacket, boots'];
+const OVERLAND = ['Tire repair kit (plugs / tubes) & levers', 'Tire pump or CO2 inflator', 'Tool roll & spare fuses',
+  'Zip ties, duct tape, spare master link', 'Tie-down straps / bungees', 'Headlamp', 'First aid kit',
+  'Water (3 L+) & snacks', 'Offline maps downloaded', 'Phone mount, charger & battery pack', 'Satellite messenger',
+  'License, registration & insurance', 'Cash', 'Rain gear & warm layer', 'Sunscreen & sunglasses'];
+
+function schedItems() {
+  return SCHED.map(d => ({id: uid(), name: d.name, mi: d.mi || null, t: d.t || null, tu: d.tu || 'months',
+    src: d.src, note: d.note, lastMi: null, lastDate: null}));
 }
-function starterLists() {
-  const mk = (name, arr) => ({id: uid(), name, items: arr.map(t => ({id: uid(), t, done: false}))});
-  return [
-    mk('Pre-ride (T-CLOCS)', [
-      'Tires: pressure, tread, nails or cuts',
-      'Wheels: rims/spokes, axle nuts',
-      'Controls: levers, throttle snaps back, cables',
-      'Brakes: lever & pedal feel, fluid level, pads',
-      'Lights: high/low beam, brake light, signals, horn',
-      'Battery & connections',
-      'Oil level & coolant level',
-      'Chain: slack and lube',
-      'Leaks under the bike?',
-      'Fasteners: bars, mirrors, visible bolts',
-      'Side stand & kill switch',
-      'Fuel',
-      'Gear: helmet, gloves, jacket, boots'
-    ]),
-    mk('Overland trip packing', [
-      'Tire repair kit (plugs / tubes) & levers',
-      'Tire pump or CO2 inflator',
-      'Tool roll & spare fuses',
-      'Zip ties, duct tape, spare master link',
-      'Tie-down straps / bungees',
-      'Headlamp',
-      'First aid kit',
-      'Water (3 L+) & snacks',
-      'Offline maps downloaded',
-      'Phone mount, charger & battery pack',
-      'Satellite messenger',
-      'License, registration & insurance',
-      'Cash',
-      'Rain gear & warm layer',
-      'Sunscreen & sunglasses'
-    ])
-  ];
-}
+const mkList = (name, arr) => ({id: uid(), name, items: arr.map(t => ({id: uid(), t, done: false}))});
+function starterLists() { return [mkList(PRE_NAME, NEW_PRE), mkList('Overland trip packing', OVERLAND)]; }
 function fresh() {
-  return {v: 1, bike: {name: 'Triumph Street Scrambler', notes: ''}, odo: [], items: starterItems(), log: [], lists: starterLists(), lastBackup: null};
+  return {v: 1, sched: SCHED_ID, savedAt: 0, bike: {name: 'Triumph Street Scrambler', notes: ''}, odo: [],
+    items: schedItems(), log: [], lists: starterLists(), lastBackup: null};
 }
 function migrate(s) {
   const f = fresh();
   s = s && typeof s === 'object' ? s : {};
   return {
     v: 1,
+    sched: s.sched || null,
+    savedAt: s.savedAt || 0,
     bike: Object.assign(f.bike, s.bike || {}),
     odo: Array.isArray(s.odo) ? s.odo.filter(o => o && o.d && isFinite(o.m)) : [],
     items: Array.isArray(s.items) ? s.items : f.items,
@@ -213,17 +239,104 @@ function migrate(s) {
     lastBackup: s.lastBackup || null
   };
 }
+// Switch an existing install to the model-specific schedule, keeping all history.
+function applySchedule() {
+  const norm = x => String(x).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const used = new Set(); let updated = 0, added = 0;
+  SCHED.forEach(def => {
+    const names = [def.name].concat(def.alias || []).map(norm);
+    let it = S.items.find(x => !used.has(x.id) && names.indexOf(norm(x.name)) >= 0);
+    const patch = {name: def.name, mi: def.mi || null, t: def.t || null, tu: def.tu || 'months', src: def.src, note: def.note};
+    if (it) { Object.assign(it, patch); updated++; }
+    else { it = Object.assign({id: uid(), lastMi: null, lastDate: null}, patch); S.items.push(it); added++; }
+    used.add(it.id);
+  });
+  // pre-ride checklist: swap the generic one if untouched, otherwise add the Triumph one alongside
+  const old = S.lists.find(l => l.name === 'Pre-ride (T-CLOCS)');
+  const untouched = old && JSON.stringify(old.items.map(i => i.t)) === JSON.stringify(OLD_PRE);
+  if (!S.lists.some(l => l.name === PRE_NAME)) {
+    if (untouched) { old.name = PRE_NAME; old.items = NEW_PRE.map(t => ({id: uid(), t, done: false})); }
+    else S.lists.unshift(mkList(PRE_NAME, NEW_PRE));
+  }
+  S.sched = SCHED_ID;
+  save();
+  return {updated, added};
+}
 
 /* ---------- state ---------- */
+let hadLS = false, lsOK = true, idbOK = null;     // idbOK: null = not checked yet
 let S = load();
 const UI = {tab: 'due', listId: null, edit: false};
+function lsTest() {
+  try { localStorage.setItem('__t', '1'); const ok = localStorage.getItem('__t') === '1'; localStorage.removeItem('__t'); return ok; }
+  catch (e) { return false; }
+}
 function load() {
-  try { const raw = localStorage.getItem(KEY); if (raw) return migrate(JSON.parse(raw)); } catch (e) {}
+  lsOK = lsTest();
+  try { const raw = localStorage.getItem(KEY); if (raw) { hadLS = true; return migrate(JSON.parse(raw)); } } catch (e) {}
   return fresh();
 }
+// second copy of the data in IndexedDB, in case localStorage is ever cleared or unavailable
+const IDB = {
+  db: null,
+  open() { return new Promise((res, rej) => {
+    try { const r = indexedDB.open('maintenance-db', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); },
+  async put(v) { try { const db = this.db || (this.db = await this.open());
+    await new Promise((res, rej) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, 'state');
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); return true; } catch (e) { return false; } },
+  async get() { try { const db = this.db || (this.db = await this.open());
+    return await new Promise((res, rej) => { const rq = db.transaction('kv').objectStore('kv').get('state');
+      rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); } catch (e) { return undefined; } }
+};
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
-  catch (e) { toast('Could not save - storage is full or blocked'); return false; }
+  S.savedAt = Date.now();
+  const json = JSON.stringify(S);
+  let ok = false;
+  try { localStorage.setItem(KEY, json); ok = true; } catch (e) {}
+  IDB.put(json).then(g => { if (g) idbOK = true; });
+  return ok;
+}
+function flush() {            // called when the app is closed / sent to the background: save only pending text edits
+  let changed = false;
+  const n = $('#bikeNotes');
+  if (n && n.value !== S.bike.notes) { S.bike.notes = n.value; changed = true; }
+  const nm = $('#bikeName'), v = nm ? nm.value.trim() : '';
+  if (v && v !== S.bike.name) { S.bike.name = v; changed = true; }
+  if (changed) save();
+}
+async function reconcile() {   // runs once at startup: recover from the second copy if needed
+  const raw = await IDB.get();
+  idbOK = raw !== undefined;
+  if (typeof raw === 'string') {
+    try {
+      const d = JSON.parse(raw);
+      if (!hadLS || (d.savedAt || 0) > (S.savedAt || 0)) {
+        S = migrate(d); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+        render(); toast('Restored your saved data'); return;
+      }
+    } catch (e) {}
+  }
+  if (hadLS) IDB.put(JSON.stringify(S));
+  render();
+}
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const isStandalone = () => !!(window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches));
+let dismissedA2HS = false;
+try { dismissedA2HS = sessionStorage.getItem('a2hs') === '1'; } catch (e) {}
+function storageBanners() {
+  let h = '';
+  if (!lsOK && idbOK === false) h += `<div class="banner bad"><b>This browser is not keeping your data.</b> You may be in a Private tab or viewing inside another app. Open the page in Safari and use Add to Home Screen.</div>`;
+  if (isIOS && !isStandalone() && !dismissedA2HS) h += `<div class="banner info">You are viewing this in Safari. The Home Screen icon keeps its own separate copy of your data. Add it to your Home Screen and use only that icon. Already entered data here? Save a backup here, then restore it in the Home Screen app.
+    <button class="x" data-act="dismiss-a2hs">Got it</button></div>`;
+  return h;
+}
+function storageStatus() {
+  const t = S.savedAt ? new Date(S.savedAt).toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}) : 'not yet';
+  const parts = [];
+  parts.push(lsOK ? 'phone storage OK' : 'phone storage BLOCKED');
+  parts.push(idbOK === false ? 'second copy unavailable' : 'second copy OK');
+  return 'Last saved: ' + t + '  |  ' + parts.join(', ');
 }
 const curOdo = () => S.odo.length ? S.odo[S.odo.length - 1].m : null;
 const latestOdoDate = () => S.odo.length ? S.odo[S.odo.length - 1].d : '0000-00-00';
@@ -271,7 +384,7 @@ function intervalText(it) {
 function statusText(it, c) {
   if (c.level === 'unset') return 'Not set - tap to enter when you last did this';
   const parts = [];
-  if (c.hasMi) parts.push(c.miLeft > 0 ? fmtNum(c.miLeft) + ' mi left' : 'Overdue by ' + fmtNum(-c.miLeft) + ' mi');
+  if (c.hasMi) parts.push(Math.round(c.miLeft) > 0 ? fmtNum(c.miLeft) + ' mi left' : Math.round(c.miLeft) === 0 ? 'Due now' : 'Overdue by ' + fmtNum(-c.miLeft) + ' mi');
   if (c.hasT) parts.push(c.dLeft > 0 ? 'due ' + (c.dLeft > 150 ? fmtDate(c.due) : fmtShort(c.due)) + ' (' + dayText(c.dLeft) + ')' : c.dLeft === 0 ? 'due today' : 'overdue by ' + dayText(-c.dLeft));
   let s = parts.join('  |  ');
   const p = pace();
@@ -296,6 +409,11 @@ function viewDue() {
   const rows = S.items.map(it => ({it, c: calc(it)})).sort((a, b) => a.c.score - b.c.score);
   const n = l => rows.filter(r => r.c.level === l).length;
   let h = `<div class="eyebrow">${esc(S.bike.name)}</div><h1>Service due</h1>`;
+  h += storageBanners();
+  if (S.sched !== SCHED_ID) {
+    h += `<div class="banner">Your service intervals are generic starting points. Switch to the schedule from Triumph's handbook for your Street Scrambler? Your history is kept.
+      <button data-act="apply-sched">Update my intervals</button></div>`;
+  }
   h += `<div class="card odo"><div><div class="eyebrow">Odometer</div>
     <div class="big">${cur != null ? fmtNum(cur) : '--'}<small>mi</small></div></div>
     <button class="btn primary" data-act="odo">${cur != null ? 'Update' : 'Set'}</button></div>`;
@@ -313,7 +431,7 @@ function viewDue() {
   rows.forEach(({it, c}) => {
     const pct = c.level === 'unset' ? 0 : Math.max(0, Math.min(1, 1 - c.score)) * 100;
     h += `<div class="card item lv-${c.level}" data-act="edit-item" data-id="${it.id}">
-      <div class="row"><div class="name">${esc(it.name)}</div><button class="done" data-act="done" data-id="${it.id}">Done</button></div>
+      <div class="row"><div class="name">${esc(it.name)}${it.src === 'triumph' ? '<span class="tag tri">Triumph</span>' : it.src === 'suggested' ? '<span class="tag">Suggested</span>' : ''}</div><button class="done" data-act="done" data-id="${it.id}">Done</button></div>
       <div class="stat">${esc(statusText(it, c))}</div>
       <div class="bar"><i style="width:${pct.toFixed(0)}%"></i></div>
       <div class="sub">${esc(intervalText(it))}</div></div>`;
@@ -370,17 +488,22 @@ function viewLists() {
 }
 
 function viewBike() {
-  const standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  const standalone = isStandalone();
   let h = `<div class="eyebrow">Settings</div><h1>My bike</h1>`;
+  h += storageBanners();
   h += `<div class="card"><label class="fld"><span>Bike name</span><input id="bikeName" value="${esc(S.bike.name)}" autocomplete="off"></label>
     <label class="fld" style="margin:0"><span>Notes (tire pressures, oil type, torque specs, VIN...)</span>
     <textarea id="bikeNotes" placeholder="Anything you want handy">${esc(S.bike.notes)}</textarea></label></div>`;
   h += `<div class="card"><h2>Backup</h2>
     <p class="help" style="margin-top:0">Everything is stored on this phone only. Save a backup file now and then (to Files, iCloud or email) so you can restore it on a new phone or if the data is ever cleared.</p>
     <div class="two"><button class="btn primary" data-act="export">Save backup</button><button class="btn" data-act="import">Restore backup</button></div>
-    <p class="help" style="margin-bottom:0">${S.lastBackup ? 'Last backup: ' + fmtDate(S.lastBackup) : 'No backup saved yet.'}</p></div>`;
-  h += `<div class="card"><h2>About the starter intervals</h2>
-    <p class="help" style="margin:0">The service items are general starting points, not official figures. Tap any item on the Due tab to set the intervals to match your owner's manual or dealer's schedule.</p></div>`;
+    <p class="help" style="margin-bottom:0">${S.lastBackup ? 'Last backup: ' + fmtDate(S.lastBackup) : 'No backup saved yet.'}</p>
+    <p class="help" style="margin:8px 0 0" id="saveState">${esc(storageStatus())}</p></div>`;
+  h += `<div class="card"><h2>Specs (2019 Street Scrambler)</h2>
+    <dl class="specs">${SPECS.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`;
+  h += `<div class="card"><h2>Where the intervals come from</h2>
+    <p class="help" style="margin:0 0 10px">Items tagged <b>Triumph</b> follow Triumph's service schedule for the Street Scrambler (10,000 mi or 12 months; the same schedule covers 2017-2020 models). Items tagged <b>Suggested</b> are extra reminders I added. Confirm anything important with your owner's handbook or dealer.</p>
+    <button class="btn block" data-act="apply-sched">Reset intervals to the Triumph schedule</button></div>`;
   if (!standalone) h += `<div class="card"><h2>Install on iPhone</h2>
     <p class="help" style="margin:0">In Safari tap the Share button, then <b>Add to Home Screen</b>. It will open full-screen like an app and work offline.</p></div>`;
   h += `<button class="btn danger block" data-act="erase">Erase all data</button>`;
@@ -456,12 +579,13 @@ function sheetItem(id) {
       <div style="display:flex;gap:6px"><input id="f-t" value="${o.t || ''}" inputmode="numeric" placeholder="12" style="width:40%">
       <select id="f-tu"><option value="days"${o.tu === 'days' ? ' selected' : ''}>days</option><option value="weeks"${o.tu === 'weeks' ? ' selected' : ''}>weeks</option><option value="months"${o.tu === 'months' ? ' selected' : ''}>months</option></select></div></div></div>
     <p class="help" style="margin-top:0">Use one or both. It is due when either one runs out.</p>
+    <label class="fld"><span>Notes / part numbers</span><textarea id="f-note" style="min-height:80px">${esc(o.note || '')}</textarea></label>
     <div class="two">${fld('Last done (date)', 'f-ld', o.lastDate || '', 'type="date"')}${fld('Last done (odometer)', 'f-lm', o.lastMi != null ? o.lastMi : '', 'inputmode="decimal"')}</div>`,
     [{label: 'Save', cls: 'primary', fn: () => {
       const name = val('f-name').trim(), mi = num(val('f-mi')), t = num(val('f-t'));
       if (!name) return err('Give it a name.');
       if (!(mi > 0) && !(t > 0)) return err('Set a mileage interval, a time interval, or both.');
-      const patch = {name, mi: mi > 0 ? mi : null, t: t > 0 ? t : null, tu: val('f-tu'), lastDate: val('f-ld') || null, lastMi: num(val('f-lm'))};
+      const patch = {name, mi: mi > 0 ? mi : null, t: t > 0 ? t : null, tu: val('f-tu'), lastDate: val('f-ld') || null, lastMi: num(val('f-lm')), note: val('f-note').trim()};
       if (it) Object.assign(it, patch); else S.items.push(Object.assign({id: uid()}, patch));
       save(); render(); return true;
     }}].concat(it ? [{label: 'Delete', cls: 'danger', fn: () => {
@@ -549,6 +673,12 @@ document.addEventListener('click', ev => {
   const L = () => S.lists.find(l => l.id === UI.listId);
   switch (act) {
     case 'close': closeSheet(); break;
+    case 'dismiss-a2hs': dismissedA2HS = true; try { sessionStorage.setItem('a2hs', '1'); } catch (e) {} render(); break;
+    case 'apply-sched':
+      if (confirm("Set your service intervals to Triumph's schedule for the Street Scrambler?\n\nYour history, odometer, and last-done dates are kept. Any intervals you changed by hand will be reset.")) {
+        const r = applySchedule(); render(); toast('Updated ' + r.updated + ' items' + (r.added ? ', added ' + r.added : ''));
+      }
+      break;
     case 'tab': UI.tab = id; UI.edit = false; window.scrollTo(0, 0); render(); break;
     case 'odo': sheetOdo(); break;
     case 'done': ev.stopPropagation(); sheetDone(id); break;
@@ -592,7 +722,11 @@ document.addEventListener('input', ev => {
 
 /* ---------- start ---------- */
 render();
-if (curOdo() == null) setTimeout(sheetOdo, 250);   // first run: ask for the odometer
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+window.addEventListener('pagehide', flush);
+reconcile().then(() => {                        // first run (nothing saved anywhere): ask for the odometer
+  if (curOdo() == null && !$('.sheet')) sheetOdo();
+});
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
