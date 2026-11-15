@@ -58,6 +58,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 .bar i{display:block;height:100%;border-radius:99px;background:var(--ok)}
 .lv-soon .bar i{background:var(--soon)} .lv-over .bar i{background:var(--over)} .lv-unset .bar i{background:var(--unset)}
 .done{min-height:40px;padding:0 16px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.howto{margin-top:10px;min-height:40px;padding:0 14px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:600;font-size:15px;color:var(--accent)}
 
 .entry .top{display:flex;justify-content:space-between;gap:10px}
 .entry .t{font-weight:650}
@@ -116,6 +117,24 @@ body.sheet-open{overflow:hidden}
 .banner.bad{background:#2b1414;border-color:#6b2a2a;color:#f5b5b0}
 .banner.info{background:#13222f;border-color:#2b4a63;color:#b7d6ee}
 .banner .x{color:var(--mute);font-weight:600}
+
+/* how-to guides */
+.sheet.guide h3{font-size:16px;margin:16px 0 6px}
+.sheet.guide h4{font-size:14px;margin:14px 0 2px;color:var(--accent);letter-spacing:.4px;text-transform:uppercase}
+.sheet.guide .actions{position:sticky;bottom:calc(-1 * (env(safe-area-inset-bottom) + 18px));background:var(--card);padding:10px 0 2px;margin-top:10px;border-top:1px solid var(--line)}
+.gl{margin:0;padding-left:20px;font-size:15px}
+.gl li{margin:3px 0}
+.gl.no li::marker{color:var(--over)}
+.gh{display:flex;justify-content:space-between;align-items:center}
+.gh h3{margin:16px 0 6px}
+.lnk{color:var(--accent);font-weight:600;font-size:14px;padding:8px 0 8px 8px}
+.gstep{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:11px 2px;border-bottom:1px solid var(--line)}
+.gstep .num{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid #4a545f;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--mute)}
+.gstep.on .num{background:var(--ok);border-color:var(--ok);color:#07200d}
+.gstep .gt{flex:1;font-size:15px;line-height:1.4}
+.gstep.on .gt{color:var(--mute)}
+.gwarn{display:block;margin-top:5px;font-size:13px;color:var(--soon)}
+.gstep .tag{margin-left:6px}
 </style>
 </head>
 <body>
@@ -188,13 +207,17 @@ const SCHED = [
 ];
 const SPECS = [
   ['Engine oil', '10W-40 or 10W-50, semi/full synthetic, API SH+, JASO MA'],
+  ['Engine oil amount', '3.4 L with filter change (3.2 L oil only)'],
   ['Oil filter', 'Triumph T1218001 or Hiflofiltro HF204RC'],
+  ['Sump plug / oil filter', '25 Nm / 10 Nm'],
   ['Air filter', 'Triumph T2201057 or K&N TB-9016'],
   ['Spark plugs', 'NGK LMAR8A-9, gap 0.9 mm'],
   ['Coolant', 'HOAT, 50% ethylene glycol premix'],
   ['Brake fluid', 'DOT 4'],
   ['Front pads (2019)', 'Triumph T2026565'],
   ['Rear pads', 'Triumph T2022955'],
+  ['Tire pressure (cold)', 'Front 2.1 bar (30 psi), rear 2.5 bar (36 psi)'],
+  ['Chain free movement', '20-30 mm'],
   ['Clutch cable play', '2-3 mm']
 ];
 const OLD_PRE = ['Tires: pressure, tread, nails or cuts', 'Wheels: rims/spokes, axle nuts',
@@ -214,6 +237,217 @@ const OVERLAND = ['Tire repair kit (plugs / tubes) & levers', 'Tire pump or CO2 
   'Water (3 L+) & snacks', 'Offline maps downloaded', 'Phone mount, charger & battery pack', 'Satellite messenger',
   'License, registration & insurance', 'Cash', 'Rain gear & warm layer', 'Sunscreen & sunglasses'];
 
+/* ---------- how-to guides (fixed content, not saved with your data) ----------
+   Facts and figures come from Triumph's Modern Classics Owner's Handbook (covers the Street Scrambler).
+   Steps tagged s:1 are general good practice and shown as "Suggested". {25} = a torque in Nm (lb-ft is added automatically). */
+const HB = "Triumph Modern Classics Owner's Handbook";
+const GUIDES = {
+  oil: {title: 'Engine oil & filter', lvl: 'diy', time: 'About 1 hour',
+    intro: 'The most common home job. You need a torque wrench that covers 10 and 25 Nm.',
+    tools: ['Torque wrench (10 Nm and 25 Nm)', 'Socket or wrench that fits your sump (drain) plug', 'Oil filter tool (Triumph lists T3880313)', 'Drain pan and a funnel', 'Rags and gloves', 'A way to hold the bike upright and level (paddock stand or a helper)'],
+    parts: ['Engine oil, 3.4 L (3.6 US qt) with the filter change: 10W-40 or 10W-50, semi or fully synthetic, API SH or higher, JASO MA', 'Oil filter: Triumph T1218001 or Hiflofiltro HF204RC', 'New sump plug sealing washer (get it before you start)'],
+    steps: [
+      {t: 'Warm the engine up thoroughly, then switch it off.', w: 'Never run the engine in a closed garage. The exhaust fumes can kill.'},
+      {t: 'Put the bike on its side stand on level ground and let the oil settle for about 5 minutes.', w: 'The exhaust and the oil are hot. Wear gloves.'},
+      {t: 'Slide the drain pan under the engine. Remove the sump plug and let all the oil drain out.'},
+      {t: 'Get the bike upright on level ground and move the pan under the oil filter.'},
+      {t: 'If you have no centre stand, use a paddock stand or ask someone to hold the bike upright.', s: 1},
+      {t: 'Remove the old oil filter with the filter tool.'},
+      {t: 'Pour a little fresh oil into the new filter, and wipe a thin film of clean oil on its rubber seal.'},
+      {t: 'Screw the new filter on and tighten it to {10}.'},
+      {t: 'Fit a NEW sealing washer on the sump plug, refit the plug and tighten it to {25}.'},
+      {t: 'Take out the oil filler plug and pour in fresh oil through a funnel. The amount with a filter change is 3.4 L (3.6 US qt). Refit the filler plug.', w: 'Do not overfill.'},
+      {t: 'Start the engine and let it idle for at least 30 seconds before touching the throttle. The oil pressure warning light should go out shortly after it starts.', w: 'If the light stays on, switch the engine off immediately.'},
+      {t: 'Switch off and check the level. For a true reading the engine must be warm and the bike upright (not on the side stand). Wait at least 3 minutes after stopping, then read the sight glass. The oil should sit about midway between MIN and MAX. Top up a little at a time if needed.'},
+      {t: 'Look under the bike for drips at the filter and the sump plug.', s: 1},
+      {t: 'Take the used oil and old filter to a recycling point. Do not put them in the general waste.'},
+      {t: 'Tap Mark done below to log the date and mileage.', s: 1}
+    ],
+    dont: [{t: "Don't reuse the old sealing washer."}, {t: "Don't overfill the engine."}, {t: "Don't raise the engine speed above idle for the first 30 seconds."}, {t: "Don't add oil additives, and don't use mineral, vegetable, non-detergent or castor-based oil."}, {t: "Don't run the engine in a closed space."}, {t: "Don't keep riding if the oil pressure light stays on."}, {t: "Don't tighten by feel. Use the torque wrench so the threads aren't damaged.", s: 1}],
+    specs: [['Oil with filter change', '3.4 L (3.6 US qt)'], ['Oil only', '3.2 L (3.4 US qt)'], ['Dry fill (empty engine)', '3.8 L (4.0 US qt)'], ['Sump plug', '{25}'], ['Oil filter', '{10}'], ['Oil', '10W-40 or 10W-50, semi/full synthetic, API SH+, JASO MA']],
+    src: HB + ': oil level pp. 101-102, oil and filter change pp. 102-104, specifications and torque table pp. 173-176. Filter part numbers are from maintenanceschedule.com, not from Triumph.'},
+
+  airfilter: {title: 'Air filter', lvl: 'care', time: 'Check your Haynes manual',
+    intro: "Triumph's handbook lists the air filter as a service item but gives no steps for it. Use your Haynes manual for how to reach the airbox. These are general tips only.",
+    tools: ['Your Haynes manual', 'Screwdrivers or sockets as the Haynes steps call for', 'Clean rags'],
+    parts: ['Air filter: Triumph T2201057 or K&N TB-9016 (part numbers from maintenanceschedule.com, not Triumph. Confirm before buying.)'],
+    steps: [
+      {t: 'Read the air filter section in Haynes all the way through before you start.', s: 1},
+      {t: 'Work on a cold engine in good light. Take photos at each stage so you can put things back the same way.', s: 1},
+      {t: 'Note how the old filter sits (which way up, which edge faces where) before you pull it out.', s: 1},
+      {t: 'Wipe out any dirt in the airbox with a clean rag. Do not let anything fall into the intake.', s: 1},
+      {t: 'Fit the new filter the same way round. Make sure it seats fully and the cover seals all the way round.', s: 1},
+      {t: 'Refit anything you removed, start the engine and check that it runs normally.', s: 1},
+      {t: 'Tap Mark done below to log it.', s: 1}
+    ],
+    dont: [{t: "Don't run the engine with the filter out or the airbox open.", s: 1}, {t: "Don't drop screws or dirt into the intake.", s: 1}],
+    specs: [['Torque figures', 'None in the Triumph handbook for this job. Use Haynes.']],
+    src: HB + ': "Air cleaner - renew" is in the scheduled maintenance table (p. 99). No procedure is given. Part numbers: maintenanceschedule.com.'},
+
+  plugs: {title: 'Spark plugs', lvl: 'care', time: 'Check your Haynes manual',
+    intro: "Triumph's handbook gives the plug type, gap and torque but no steps for replacing them. Use Haynes for what has to come off to reach the plugs. The steps here are general tips.",
+    tools: ['Your Haynes manual', 'Spark plug socket', 'Feeler gauge (0.9 mm)', 'Torque wrench that reads 12 Nm', 'Compressed air or a vacuum to clean the plug wells'],
+    parts: ['2 x NGK LMAR8A-9 spark plugs'],
+    steps: [
+      {t: 'Read the spark plug section in Haynes first so you know what must come off to reach the plugs.', s: 1},
+      {t: 'Work on a cold engine.', s: 1},
+      {t: 'Remove the plug caps or coils as Haynes describes. Label them left and right so they go back where they came from.', s: 1},
+      {t: 'Blow or vacuum dirt out of the plug wells before you unscrew the plugs, so nothing falls into the cylinder.', s: 1},
+      {t: 'Unscrew the old plugs. Look at the tips. Heavy black, wet or white deposits are worth mentioning to a dealer.', s: 1},
+      {t: 'Check the gap of each new plug with a feeler gauge: 0.9 mm (+0.0 / -0.1 mm). Do not bend the centre electrode.'},
+      {t: 'Start each plug by hand so it cannot cross-thread, then tighten to {12} with the torque wrench.'},
+      {t: 'Refit the coils or caps and everything else you removed. Start the engine and check that it runs smoothly.', s: 1},
+      {t: 'Tap Mark done below to log it.', s: 1}
+    ],
+    dont: [{t: "Don't force a plug that won't thread in by hand. Back it out and start again.", s: 1}, {t: "Don't overtighten. Use {12}."}, {t: "Don't mix up the left and right coils or caps.", s: 1}],
+    specs: [['Plug', 'NGK LMAR8A-9'], ['Gap', '0.9 mm (+0.0 / -0.1 mm)'], ['Torque', '{12}']],
+    src: HB + ': plug type and gap p. 174, torque table p. 175. Steps are not in the handbook.'},
+
+  valves: {title: 'Valve clearances & cam timing', lvl: 'dealer',
+    intro: "Checking valve clearances means taking the top of the engine apart and measuring tiny gaps with feeler gauges. Triumph's handbook gives no home procedure for it. Have a Triumph dealer do it.",
+    ask: ['Valve clearance check (and adjustment if needed) and camshaft timing check.', 'Ask for the measured clearances to be written on the invoice, so you have them for next time.', 'Spark plugs are due at the same 20,000 mi point, so ask for both in one visit.'],
+    src: HB + ': scheduled maintenance table (p. 99). No procedure is given.'},
+
+  fuelfilter: {title: 'Fuel filter', lvl: 'dealer',
+    intro: "The fuel system holds fuel and vapor, so this is a fire-risk job. Triumph's handbook gives no home procedure. Leave it to a dealer.",
+    ask: ['Fuel filter replacement.', 'Ask them to look at the fuel and vapor hoses while they are in there (your schedule has them every 4 years).'],
+    src: HB + ': scheduled maintenance table (p. 99). No procedure is given.'},
+
+  steering: {title: 'Steering head bearings', lvl: 'dealer',
+    intro: "Checking and greasing these needs the front wheel lifted and the bearings set with care. Triumph's handbook gives no home procedure. Have a dealer do it.",
+    ask: ['Check the steering head bearings for play, adjust, and lubricate them.', 'Tell them if the steering feels notchy or clunks when you brake.'],
+    src: HB + ': scheduled maintenance table (p. 99). No procedure is given.'},
+
+  forkoil: {title: 'Fork oil', lvl: 'dealer',
+    intro: "Changing fork oil means taking the forks apart and measuring the oil level exactly. Triumph's handbook gives no home procedure. Have a dealer do it.",
+    ask: ['Fork oil change (both legs).', 'Ask them to check the fork seals for leaks at the same time.'],
+    src: HB + ': scheduled maintenance table (p. 99). No procedure is given.'},
+
+  hoses: {title: 'Fuel & vapor hoses', lvl: 'dealer',
+    intro: "These hoses are part of the fuel system, so replacing them is a fire-risk job. Triumph's handbook gives no home procedure. Have a dealer do it.",
+    ask: ['Replace the fuel and evaporative-loss (vapor) hoses.', 'Ask them to check the fuel filter at the same time.'],
+    src: 'Your schedule (4 years). No home procedure is given by Triumph.'},
+
+  brakefluid: {title: 'Brake fluid', lvl: 'dealer',
+    intro: "Checking the level is an easy home check. Changing the fluid means bleeding the brakes, and Triumph's handbook gives no home procedure. Have a dealer do that every 2 years.",
+    steps: [
+      {h: 'Check the level'},
+      {t: 'Front: turn the handlebar so the reservoir is level (horizontal). The fluid must sit between the UPPER and LOWER lines.'},
+      {t: 'Rear: check the rear reservoir, which is bolted to the frame, against the level marks on it.', s: 1},
+      {t: 'A low level usually means worn pads or a leak. Do not just top up. Check the pads and have it looked at.', s: 1},
+      {t: 'If the lever or pedal feels soft, or the travel is too long, do not ride until a dealer has fixed it.'}
+    ],
+    ask: ['Brake fluid change (DOT 4), front and rear, every 2 years.', 'Ask them to check the pads and discs while the wheels are accessible.'],
+    dont: [{t: "Don't use anything except DOT 4 fluid."}, {t: "Don't ride with a soft lever or pedal."}, {t: "Don't spill brake fluid on paint. It can damage it.", s: 1}],
+    specs: [['Fluid', 'DOT 4'], ['Change interval', 'Every 2 years'], ['Front reservoir cap screws', '{1}']],
+    src: HB + ': fluid type p. 117, front reservoir pp. 118-119, rear reservoir p. 123, schedule p. 99.'},
+
+  coolant: {title: 'Coolant', lvl: 'care', time: '10 minutes (level check)',
+    intro: 'Topping up is an easy home job. Triumph recommends a dealer does the full coolant change every 3 years.',
+    steps: [
+      {h: 'Check the level'},
+      {t: 'Check only when the engine is COLD, with the bike upright on level ground.', w: 'The coolant is under pressure when hot. Never open the cap on a hot engine.'},
+      {t: 'Look at the expansion tank. The level must be between the MIN and MAX marks.'},
+      {h: 'Top up if needed'},
+      {t: 'With the engine cold, take off the expansion tank cap and add Triumph HD4X Hybrid OAT coolant (green, pre-mixed 50/50) up to the MAX mark.'},
+      {t: 'Refit the cap.'},
+      {t: 'Tap Mark done below only for a full coolant change. A top-up does not reset the 3-year interval.', s: 1}
+    ],
+    ask: ['Full coolant change every 3 years (Triumph recommends a dealer does it).'],
+    dont: [{t: "Don't open the cap on a hot engine."}, {t: "Don't leave plain water in the system. Hard water causes scale. In an emergency distilled water is okay, but refill with HD4X as soon as you can."}],
+    specs: [['Coolant', 'Triumph HD4X Hybrid OAT, pre-mixed 50/50'], ['System capacity', '1.518 L (1.6 US qt)'], ['Change interval', 'Every 3 years']],
+    src: HB + ': coolant level pp. 105-107, schedule p. 99, specifications p. 173.'},
+
+  chainlube: {title: 'Chain lube', lvl: 'diy', time: '10 minutes + overnight',
+    intro: 'Lube the chain every 200 miles (300 km), and after riding in the wet or when it looks dry.',
+    tools: ['Chain lubricant of the type Triumph specifies', 'Rags', 'Chain cleaner (if the chain is dirty)'],
+    steps: [
+      {t: 'If the chain is very dirty, clean it first.'},
+      {t: 'Rotate the rear wheel by hand so you can reach the whole chain. A rear paddock stand makes this easier.', s: 1},
+      {t: 'Apply the lubricant to the sides of the rollers.'},
+      {t: 'Leave the bike for at least 8 hours. Overnight is ideal.'},
+      {t: 'Wipe off any extra lube before you ride.'},
+      {t: 'Tap Mark done below to reset the 200 mile reminder.', s: 1}
+    ],
+    dont: [{t: "Don't use a pressure washer on the chain."}, {t: "Don't ride straight away. Lube needs time to soak in, and extra can fling off."}, {t: "Don't get lube on the tire or the brake disc.", s: 1}],
+    specs: [['Interval', 'Every 200 mi (300 km), and after rain or when dry']],
+    src: HB + ': drive chain lubrication p. 111.'},
+
+  chaincheck: {title: 'Chain slack & wear', lvl: 'care', time: '20-30 minutes',
+    intro: 'Check the slack often and the wear now and then. Adjusting the chain changes the wheel alignment, so take your time.',
+    tools: ['Torque wrench that reaches 110 Nm', 'Socket for the rear wheel spindle nut', 'Ruler or tape measure', 'A 10-20 kg (20-40 lb) weight (for the wear check)', 'Wrench for the adjuster lock nuts'],
+    steps: [
+      {h: 'Check the slack'},
+      {t: 'Put the bike upright on level ground with no weight on it.'},
+      {t: 'Roll the bike to turn the rear wheel until the chain is at its tightest.'},
+      {t: 'Measure how far the chain moves up and down, halfway between the two sprockets. It should be 20-30 mm (about 0.8-1.2 in).'},
+      {h: 'Adjust it (only if outside 20-30 mm)'},
+      {t: 'Loosen the rear wheel spindle nut.'},
+      {t: 'Loosen the lock nuts on both chain adjuster bolts.'},
+      {t: 'Turn both adjuster bolts by the same amount, using the marks on the swingarm as a guide. Read the turning direction on pp. 112-113 of your handbook, and confirm it by watching which way the wheel moves.'},
+      {t: 'Push the wheel firmly back against the adjusters.'},
+      {t: 'Check that the same mark lines up on both sides of the swingarm.'},
+      {t: 'Tighten both adjuster lock nuts to {20} and the wheel spindle nut to {110}.'},
+      {t: 'Measure the slack again and repeat if needed.'},
+      {t: 'Check that the rear brake works properly before you ride.'},
+      {h: 'Check the wear'},
+      {t: 'Take off the chain guard.'},
+      {t: 'Hang a 10-20 kg (20-40 lb) weight on the chain so it is pulled straight.'},
+      {t: 'Measure 20 links, from the centre of the 1st pin to the centre of the 21st pin. Measure in several places because wear is uneven. Replace the chain if it is longer than 320 mm (12.6 in).'},
+      {t: 'Turn the wheel and look for damaged rollers and loose pins or links. Check the sprocket teeth for uneven or heavy wear.'},
+      {t: 'If anything looks wrong, have a Triumph dealer replace the chain and sprockets.'},
+      {t: 'Refit the chain guard and tighten its fixings to {9}.'},
+      {t: 'Tap Mark done below to log it.', s: 1}
+    ],
+    dont: [{t: "Don't adjust one side more than the other."}, {t: "Don't forget to retighten the lock nuts and the spindle nut to the figures above."}, {t: "Don't replace only the sprockets. Replace the chain and sprockets together."}, {t: "Don't ride on a loose, worn or badly adjusted chain. It can jump off or break."}],
+    specs: [['Free movement', '20-30 mm (0.8-1.2 in)'], ['Wear limit', '320 mm over 20 links (12.6 in)'], ['Adjuster lock nuts', '{20}'], ['Rear wheel spindle nut', '{110}'], ['Chain guard fixings', '{9}']],
+    src: HB + ': drive chain pp. 111-114, torque table p. 175.'},
+
+  pads: {title: 'Brake pad wear', lvl: 'care', time: '10 minutes (check)',
+    intro: "Checking pad wear is an easy home check. Triumph's handbook gives no steps for fitting new pads, so use Haynes or a dealer for that.",
+    steps: [
+      {h: 'Check the pads'},
+      {t: 'Park on level ground. Use a torch to look at the pads inside each caliper.', s: 1},
+      {t: 'Front: replace the pads in BOTH calipers if the lining is under 1.0 mm (0.04 in).'},
+      {t: 'Rear: replace the pads if the lining is under 1.5 mm (0.06 in).'},
+      {t: 'On your bike a raised area on the front backing plate makes the front brake squeal when the pads are below the minimum. Treat a new squeal as a warning.'},
+      {t: 'Always replace pads as a set for the wheel.'},
+      {h: 'After new pads'},
+      {t: 'Ride gently for the first 200 miles (300 km) while the pads bed in. Avoid hard braking and leave extra stopping distance.'},
+      {t: 'If the lever or pedal feels soft or the travel is too long, do not ride until a dealer has fixed it.'},
+      {t: 'Tap Mark done below to log it.', s: 1}
+    ],
+    parts: ['Front pads: Triumph T2026565 (2019 model)', 'Rear pads: Triumph T2022955', 'These part numbers came from earlier research, not the handbook. Confirm them with a dealer by your VIN, because Triumph changed some 2019 brake parts.'],
+    dont: [{t: "Don't ride with a soft lever or pedal."}, {t: "Don't brake hard during the 200 mile bed-in."}, {t: "Don't get oil or grease on the pads or discs.", s: 1}],
+    specs: [['Front limit', '1.0 mm (0.04 in)'], ['Rear limit', '1.5 mm (0.06 in)'], ['Bed-in', '200 mi (300 km)'], ['Adjustment', 'None. Wear is compensated automatically.']],
+    src: HB + ': brake pads pp. 115-116. Part numbers: earlier research (not Triumph handbook).'},
+
+  tires: {title: 'Tire pressure check', lvl: 'diy', time: '5 minutes',
+    intro: 'The quickest check, and one of the most important.',
+    steps: [
+      {t: 'Check the pressures with the tires cold, before you ride.'},
+      {t: 'Front: 2.1 bar (30 psi). Rear: 2.5 bar (36 psi).'},
+      {t: 'Use a gauge you trust. Add or release air as needed, then refit the valve caps.', s: 1},
+      {t: 'Look over the tires for wear, cuts and nails.', s: 1},
+      {t: 'If you air down for off-road riding, set them back to these figures before you ride on the road.', s: 1},
+      {t: 'Tap Mark done below to log it.', s: 1}
+    ],
+    specs: [['Front (cold)', '2.1 bar (30 psi)'], ['Rear (cold)', '2.5 bar (36 psi)'], ['Front tire', '100/90-19'], ['Rear tire', '150/70 R17']],
+    src: HB + ': tire pressures p. 135, specifications p. 175.'}
+};
+// which guide goes with which service item (matched by name, so renamed or custom items simply have no guide)
+const GUIDE_KEY = {
+  'engine oil & filter': 'oil', 'air filter': 'airfilter', 'spark plugs': 'plugs',
+  'valve clearances & cam timing': 'valves', 'fuel filter': 'fuelfilter', 'steering head bearings': 'steering',
+  'fork oil': 'forkoil', 'brake fluid': 'brakefluid', 'coolant': 'coolant', 'fuel & vapor hoses': 'hoses',
+  'chain lube': 'chainlube', 'chain wear check': 'chaincheck', 'tire pressure check': 'tires', 'brake pad wear check': 'pads'
+};
+const guideKeyFor = it => GUIDE_KEY[String(it && it.name || '').trim().toLowerCase()] || null;
+const LVL = {diy: 'Good DIY job', care: 'DIY with care', dealer: 'Dealer job'};
+const SUG = '<span class="tag">Suggested</span>';
+// text -> safe HTML, turning {25} into "25 Nm (18.4 lb-ft)"
+const fx = s => esc(s).replace(/\{(\d+(?:\.\d+)?)\}/g, (m, n) => '<b>' + n + ' Nm</b> (' + (n * 0.73756).toFixed(1) + ' lb-ft)');
+
 function schedItems() {
   return SCHED.map(d => ({id: uid(), name: d.name, mi: d.mi || null, t: d.t || null, tu: d.tu || 'months',
     src: d.src, note: d.note, lastMi: null, lastDate: null}));
@@ -222,7 +456,7 @@ const mkList = (name, arr) => ({id: uid(), name, items: arr.map(t => ({id: uid()
 function starterLists() { return [mkList(PRE_NAME, NEW_PRE), mkList('Overland trip packing', OVERLAND)]; }
 function fresh() {
   return {v: 1, sched: SCHED_ID, savedAt: 0, bike: {name: 'Triumph Street Scrambler', notes: ''}, odo: [],
-    items: schedItems(), log: [], lists: starterLists(), lastBackup: null};
+    items: schedItems(), log: [], lists: starterLists(), lastBackup: null, gnotes: {}};
 }
 function migrate(s) {
   const f = fresh();
@@ -236,7 +470,8 @@ function migrate(s) {
     items: Array.isArray(s.items) ? s.items : f.items,
     log: Array.isArray(s.log) ? s.log : [],
     lists: Array.isArray(s.lists) ? s.lists : f.lists,
-    lastBackup: s.lastBackup || null
+    lastBackup: s.lastBackup || null,
+    gnotes: s.gnotes && typeof s.gnotes === 'object' && !Array.isArray(s.gnotes) ? s.gnotes : {}   // added with how-to guides; older data simply gets an empty set
   };
 }
 // Switch an existing install to the model-specific schedule, keeping all history.
@@ -266,7 +501,7 @@ function applySchedule() {
 /* ---------- state ---------- */
 let hadLS = false, lsOK = true, idbOK = null;     // idbOK: null = not checked yet
 let S = load();
-const UI = {tab: 'due', listId: null, edit: false};
+const UI = {tab: 'due', listId: null, edit: false, gt: {}, gkey: null};   // gt: ticked guide steps (kept only while the app is open)
 function lsTest() {
   try { localStorage.setItem('__t', '1'); const ok = localStorage.getItem('__t') === '1'; localStorage.removeItem('__t'); return ok; }
   catch (e) { return false; }
@@ -297,6 +532,14 @@ function save() {
   IDB.put(json).then(g => { if (g) idbOK = true; });
   return ok;
 }
+function saveGnote() {       // the "My notes" box inside a how-to guide
+  const g = $('#gnote');
+  if (!g || !UI.gkey) return;
+  const v = g.value;
+  if (v === (S.gnotes[UI.gkey] || '')) return;
+  if (v.trim()) S.gnotes[UI.gkey] = v; else delete S.gnotes[UI.gkey];
+  save();
+}
 function flush() {            // called when the app is closed / sent to the background: save only pending text edits
   let changed = false;
   const n = $('#bikeNotes');
@@ -304,6 +547,7 @@ function flush() {            // called when the app is closed / sent to the bac
   const nm = $('#bikeName'), v = nm ? nm.value.trim() : '';
   if (v && v !== S.bike.name) { S.bike.name = v; changed = true; }
   if (changed) save();
+  saveGnote();
 }
 async function reconcile() {   // runs once at startup: recover from the second copy if needed
   const raw = await IDB.get();
@@ -434,7 +678,8 @@ function viewDue() {
       <div class="row"><div class="name">${esc(it.name)}${it.src === 'triumph' ? '<span class="tag tri">Triumph</span>' : it.src === 'suggested' ? '<span class="tag">Suggested</span>' : ''}</div><button class="done" data-act="done" data-id="${it.id}">Done</button></div>
       <div class="stat">${esc(statusText(it, c))}</div>
       <div class="bar"><i style="width:${pct.toFixed(0)}%"></i></div>
-      <div class="sub">${esc(intervalText(it))}</div></div>`;
+      <div class="sub">${esc(intervalText(it))}</div>
+      ${guideKeyFor(it) ? `<button class="howto" data-act="howto" data-id="${it.id}">How to do this &rsaquo;</button>` : ''}</div>`;
   });
   h += `<button class="btn block" data-act="add-item">+ Add service item</button>`;
   return h;
@@ -494,6 +739,10 @@ function viewBike() {
   h += `<div class="card"><label class="fld"><span>Bike name</span><input id="bikeName" value="${esc(S.bike.name)}" autocomplete="off"></label>
     <label class="fld" style="margin:0"><span>Notes (tire pressures, oil type, torque specs, VIN...)</span>
     <textarea id="bikeNotes" placeholder="Anything you want handy">${esc(S.bike.notes)}</textarea></label></div>`;
+  h += `<div class="card"><h2>How-to guides</h2>
+    <p class="help" style="margin:0 0 6px">Step-by-step help for each service job, with torque figures and what not to do. You can also open them from the Due tab.</p>
+    ${Object.keys(GUIDES).map(k => `<button class="check" data-act="guide-open" data-id="${k}"><span class="txt">${esc(GUIDES[k].title)}</span><span class="tag" style="margin-left:auto">${LVL[GUIDES[k].lvl]}</span></button>`).join('')}
+    <p class="help" style="margin:10px 0 0">Figures come from Triumph's Modern Classics Owner's Handbook, which covers the Street Scrambler. If your own 2019 handbook says something different, go with your handbook.</p></div>`;
   h += `<div class="card"><h2>Backup</h2>
     <p class="help" style="margin-top:0">Everything is stored on this phone only. Save a backup file now and then (to Files, iCloud or email) so you can restore it on a new phone or if the data is ever cleared.</p>
     <div class="two"><button class="btn primary" data-act="export">Save backup</button><button class="btn" data-act="import">Restore backup</button></div>
@@ -520,15 +769,15 @@ function render() {
 
 /* ---------- sheets ---------- */
 let sheetActions = [];
-function openSheet(title, body, actions) {
+function openSheet(title, body, actions, cls) {
   sheetActions = actions;
   $('#sheet-root').innerHTML = `<div class="overlay" data-act="close"></div>
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grab"></div><h2>${esc(title)}</h2>${body}
+    <div class="sheet ${cls || ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grab"></div><h2>${esc(title)}</h2>${body}
     <div class="err" id="f-err"></div>
     <div class="actions">${actions.map((a, i) => `<button class="btn ${a.cls || ''}" data-sa="${i}">${esc(a.label)}</button>`).join('')}</div></div>`;
   document.body.classList.add('sheet-open');
 }
-function closeSheet() { $('#sheet-root').innerHTML = ''; document.body.classList.remove('sheet-open'); }
+function closeSheet() { saveGnote(); $('#sheet-root').innerHTML = ''; document.body.classList.remove('sheet-open'); }
 const fld = (label, id, val, attrs) => `<label class="fld"><span>${esc(label)}</span><input id="${id}" value="${esc(val == null ? '' : val)}" ${attrs || ''}></label>`;
 const err = msg => { const e = $('#f-err'); if (e) e.textContent = msg; return false; };
 const val = id => $('#' + id).value;
@@ -565,6 +814,7 @@ function sheetDone(id) {
       it.lastDate = d; if (m != null) it.lastMi = m;
       recalc(it.id);
       if (m != null && d >= latestOdoDate()) setOdo(m, d);
+      const gk = guideKeyFor(it); if (gk) delete UI.gt[gk];     // fresh ticks for next time
       save(); render(); toast('Logged: ' + it.name); return true;
     }}, {label: 'Cancel', fn: () => true}]);
 }
@@ -628,6 +878,41 @@ function sheetNewList() {
     }}, {label: 'Cancel', fn: () => true}]);
 }
 
+/* ---------- how-to guide sheet ---------- */
+function sheetGuide(key) {
+  const g = GUIDES[key]; if (!g) return;
+  UI.gkey = key;
+  const ticks = UI.gt[key] || (UI.gt[key] = {});
+  const it = S.items.find(i => guideKeyFor(i) === key);
+  const list = (arr, cls) => '<ul class="gl ' + (cls || '') + '">' + arr.map(x => {
+    const o = typeof x === 'string' ? {t: x} : x;
+    return '<li>' + fx(o.t) + (o.s ? SUG : '') + '</li>';
+  }).join('') + '</ul>';
+  let b = `<div class="chips" style="margin-top:0"><span class="chip ${g.lvl === 'dealer' ? 'soon' : 'ok'}">${LVL[g.lvl]}</span>${g.time ? `<span class="chip">${esc(g.time)}</span>` : ''}</div>`;
+  b += `<p style="margin:8px 0 6px">${esc(g.intro)}</p>`;
+  b += `<p class="help" style="margin:0">Figures and steps are from Triumph's handbook unless tagged ${SUG}</p>`;
+  if (g.tools) b += '<h3>Tools</h3>' + list(g.tools);
+  if (g.parts) b += '<h3>Parts</h3>' + list(g.parts);
+  if (g.steps) {
+    let n = 0;
+    b += `<div class="gh"><h3>Steps</h3><button class="lnk" data-act="greset">Clear ticks</button></div>`;
+    g.steps.forEach((st, i) => {
+      if (st.h) { b += `<h4>${esc(st.h)}</h4>`; return; }
+      n++;
+      b += `<button class="gstep ${ticks[i] ? 'on' : ''}" data-act="gstep" data-i="${i}"><span class="num">${n}</span><span class="gt">${fx(st.t)}${st.s ? SUG : ''}${st.w ? `<span class="gwarn">${fx(st.w)}</span>` : ''}</span></button>`;
+    });
+  }
+  if (g.ask) b += '<h3>What to ask the dealer</h3>' + list(g.ask);
+  if (g.dont) b += '<h3>Do not</h3>' + list(g.dont, 'no');
+  if (g.specs) b += '<h3>Key figures</h3><dl class="specs">' + g.specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${fx(v)}</dd>`).join('') + '</dl>';
+  b += `<label class="fld" style="margin-top:16px"><span>My notes for this job (Haynes page, what you used, tips)</span><textarea id="gnote" style="min-height:80px">${esc(S.gnotes[key] || '')}</textarea></label>`;
+  b += `<p class="help" style="margin:0">Sources: ${esc(g.src)} Always check torque figures against your own handbook before you finish.</p>`;
+  const actions = [];
+  if (it) actions.push({label: 'Mark done', cls: 'primary', fn: () => { saveGnote(); sheetDone(it.id); return false; }});
+  actions.push({label: 'Close', fn: () => true});
+  openSheet(g.title, b, actions, 'guide');
+}
+
 /* ---------- toast ---------- */
 let toastT;
 function toast(msg) {
@@ -682,6 +967,10 @@ document.addEventListener('click', ev => {
     case 'tab': UI.tab = id; UI.edit = false; window.scrollTo(0, 0); render(); break;
     case 'odo': sheetOdo(); break;
     case 'done': ev.stopPropagation(); sheetDone(id); break;
+    case 'howto': { const it = itemById(id), k = it && guideKeyFor(it); if (k) sheetGuide(k); break; }
+    case 'guide-open': sheetGuide(id); break;
+    case 'gstep': { const k = UI.gkey, i = +el.dataset.i; const t = UI.gt[k] || (UI.gt[k] = {}); t[i] = !t[i]; el.classList.toggle('on', !!t[i]); break; }
+    case 'greset': UI.gt[UI.gkey] = {}; document.querySelectorAll('.gstep.on').forEach(x => x.classList.remove('on')); break;
     case 'edit-item': sheetItem(id); break;
     case 'add-item': sheetItem(null); break;
     case 'add-log': sheetLog(null); break;
@@ -718,6 +1007,7 @@ document.addEventListener('change', ev => {
 let noteT;
 document.addEventListener('input', ev => {
   if (ev.target.id === 'bikeNotes') { clearTimeout(noteT); const v = ev.target.value; noteT = setTimeout(() => { S.bike.notes = v; save(); }, 400); }
+  if (ev.target.id === 'gnote') { clearTimeout(noteT); noteT = setTimeout(saveGnote, 400); }
 });
 
 /* ---------- start ---------- */

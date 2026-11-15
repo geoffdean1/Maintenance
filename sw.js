@@ -1,5 +1,5 @@
 // Network-first service worker: always fresh when online, works offline from cache.
-const CACHE = 'maintenance-v2';
+const CACHE = 'maintenance-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
